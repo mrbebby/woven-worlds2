@@ -1,0 +1,151 @@
+on load:
+  broadcast "&aWoven Worlds has been enabled."
+  loop all players:
+    console command "team add %loop-player%"
+    add loop-player to team named "%loop-player%"
+
+on unload:
+  broadcast "&cWoven Worlds has been disabled."
+
+command /setlife <player> <integer>:
+  permission: op
+  trigger:
+    set {lives::%arg-1%} to arg-2
+    send "%player% &7Set &c%arg-1%'s &7Lives to &f%arg-2%" to all operators
+    setupteams(arg-1)
+
+command /setalllives <integer>:
+  permission: op
+  trigger:
+    loop all players:
+      set {lives::%loop-player%} to arg-1
+      setupteams(loop-player)
+    broadcast "&aAll lives have been set to %arg-1%"
+
+
+command /addlives <player> <integer>:
+  permission: op
+  aliases: /addlife
+  trigger:
+    add arg-2 to {lives::%arg-1%}
+    send "%player% &7added &c%arg-2% &7Lives to &c%arg-1%" to all operators
+    setupteams(arg-1)
+
+command /removelives <player> <integer>:
+  permission: op
+  aliases: /removelife
+  trigger:
+    remove arg-2 from {lives::%arg-1%}
+    send "%player% &7took &c%arg-2% &7Lives to &c%arg-1%" to all operators
+    setupteams(arg-1)
+
+on death of player:
+  if {lives::%victim%} < 1:
+    remove 1 from {lives::%victim%}
+    play sound "item.mace.heavy_ground_smash" to all players
+  else:
+    cancel event
+    finaldeath(victim)
+  setupteams(victim)
+
+function finaldeath(p: player):
+  set {_xcord} to {_p}'s x coordinate
+  set {_ycord} to {_p}'s y coordinate
+  set {_zcord} to {_p}'s z coordinate
+  set {_loc} to {_p'}'s location
+  add 50 to {_ycord}
+  loop 50 times:
+    draw sonic boom particle at {_xcord} {_ycord} {_zcord}
+    subtract 1 from {_ycord}
+    wait 1 tick
+  set {_p}'s gamemode to spectator
+  kill {_p}
+  console command "execute as {_p} run particle dust(dustOption(rgb(44, 153, 255), 0.7)) ~ ~ ~ 0.8 0.8 0.8 0.1 100 force"
+  dropitems({_p})
+  send title "&b&l%{_p}%" with subtitle "&cRan Out Of lives!" for 4 seconds to all players 
+  set color of team of {_p} to gray
+
+function dropitems(p: player):
+  set {_loc} to {_p}'s location
+  loop all items in {_p}'s inventory:
+    drop loop-item at {_loc}
+
+# half life stuff
+
+on death of player:
+  if {halflifetimer::%attacker%} is true:
+    set {halflifetimer::%attacker%} to false
+    add 1 to {lives::%attacker%}
+    setupteams(attacker)
+  else:
+    set {halflifetimer::%attacker%} to true
+    set {halfliferealtimer} to 1200
+
+command /sethalflifetimer <player> <integer>:
+  permission: op
+  trigger:
+    set {halfliferealtimer::%arg-1%} to arg-2
+    send "%player% set the Half life timer of %arg-1% to %arg-2%" to all operators
+  
+command /sethalflifetimerall <integer>:
+  permission: op
+  trigger:
+    loop all players:
+      if arg-1 = 0:
+        set {halflifetimer::%loop-player%} to false
+      else:
+        set {halfliferealtimer::%loop-player%} to arg-1
+    send "%player% set Everyones Half life timer to %arg-1%" to all operators
+    
+
+# world rolling yo
+
+function rollworlds():
+  loop all players:
+    reveal loop-player to all players
+  delete {worldA::*}
+  delete {worldB::*}
+  set {_pool::*} to all players
+  loop size of {_pool::*} times:
+    if {_value} is true:
+      set {_random} to a random value from {_pool::*}
+      add {_random} to {worldA::*}
+      remove {_random} from {_pool::*}
+      set {_value} to false
+    else:
+      set {_random} to a random value from {_pool::*}
+      add {_random} to {worldB::*}
+      remove {_random} from {_pool::*}
+      set {_value} to true
+  console command "execute at @a as @a run particle minecraft:sonic_boom"
+  wait 5 ticks
+  loop all players in {worldA::*}:
+    loop all players in {worldB::*}:
+      hide loop-player-1 from loop-player-2
+      hide loop-player-2 from loop-player-1
+
+on leave:
+  cancel message
+  send "&3%player% left the game" to all operators
+  
+on join:
+  cancel message
+  send "&3%player% Joined the game" to all operators
+  loop all players in {worldA::*}:
+    loop all players in {worldB::*}:
+      hide loop-player-1 from loop-player-2
+      hide loop-player-2 from loop-player-1
+
+
+function setupteams(p: player):
+  console command "team add %{_p}%"
+  add {_p} to team named "%{_p}%"
+  if {lives::%{_p}%} = 0:
+    set team color of {_p} to gray
+  else if {lives::%{_p}%} <= 4:
+    set team color of {_p} to aqua
+  else if {lives::%{_p}%} <= 8:
+    set team color of {_p} to cyan
+  else if {lives::%{_p}%} >= 9:
+    set team color of {_p} to indigo
+  
