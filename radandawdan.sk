@@ -156,4 +156,6 @@ function setupteams(p: player):
     set team color of {_p} to cyan
   else if {lives::%{_p}%} >= 9:
     set team color of {_p} to indigo
-  
+
+
+
