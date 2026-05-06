@@ -96,7 +96,15 @@ command /sethalflifetimerall <integer>:
       else:
         set {halfliferealtimer::%loop-player%} to arg-1
     send "%player% set Everyones Half life timer to %arg-1%" to all operators
-    
+
+every 1 second:
+  loop all players:
+    if {halflifetimerreal::%loop-player%} < 0:
+      if {halflifetimer::%loop-player%} is true:
+        remove 1 from {halfliferealtimer::%loop-player%}
+        if {halflifetimerreal::%loop-player%} = 0
+          set {halflifetimer::%loop-player%} to false
+
 
 # world rolling yo
 
