@@ -52,16 +52,33 @@ function finaldeath(p: player):
   set {_xcord} to {_p}'s x coordinate
   set {_ycord} to {_p}'s y coordinate
   set {_zcord} to {_p}'s z coordinate
+  set {_xcord2} to {_p}'s z coordinate
+  set {_xcord3} to {_p}'s z coordinate
+  set {_zcord2} to {_p}'s z coordinate
+  set {_zcord3} to {_p}'s z coordinate
   set {_loc} to {_p'}'s location
   add 50 to {_ycord}
+  add 50 to {_xcord2}
+  add 50 to {_xcord3}
+  add 50 to {_zcord2}
+  add 50 to {_zcord3}
   loop 50 times:
     draw sonic boom particle at {_xcord} {_ycord} {_zcord}
+    draw sonic boom particle at {_xcord2} {_ycord} {_zcord}
+    draw sonic boom particle at {_xcord3} {_ycord} {_zcord}
+    draw sonic boom particle at {_xcord} {_ycord} {_zcord2}
+    draw sonic boom particle at {_xcord} {_ycord} {_zcord3}
     subtract 1 from {_ycord}
+    subtract 1 to {_xcord2}
+    subtract 1 to {_xcord3}
+    subtract 1 to {_zcord2}
+    subtract 1 to {_zcord3}
     wait 1 tick
   set {_p}'s gamemode to spectator
   kill {_p}
-  console command "execute as {_p} run particle dust(dustOption(rgb(44, 153, 255), 0.7)) ~ ~ ~ 0.8 0.8 0.8 0.1 100 force"
+  console command "execute as %{_p}% run particle dust(dustOption(rgb(44, 153, 255), 0.7)) %{_loc}% 0.8 0.8 0.8 0.1 100 force"
   dropitems({_p})
+  strike lightning effect at {_loc}
   send title "&b&l%{_p}%" with subtitle "&cRan Out Of lives!" for 4 seconds to all players 
   set color of team of {_p} to gray
 
@@ -102,7 +119,7 @@ every 1 second:
     if {halflifetimerreal::%loop-player%} < 0:
       if {halflifetimer::%loop-player%} is true:
         remove 1 from {halfliferealtimer::%loop-player%}
-        if {halflifetimerreal::%loop-player%} = 0
+        if {halflifetimerreal::%loop-player%} = 0:
           set {halflifetimer::%loop-player%} to false
 
 
@@ -158,4 +175,40 @@ function setupteams(p: player):
     set team color of {_p} to indigo
 
 
+on chat:
+  cancel event
+  if player's gamemode is spectator:
+    send "&4SPECTATOR || %player% &7%chat message%" to all spectators
+  else:
+    send "&7Your words have been silenced..."
+
+
+on death:
+  cancel death message
+  if {worldA::*} contains victim:
+    if {worldA::*} contains attacker:
+      send death message to all players in {worldA::*}
+      replace "%victim%" in death message with "&k%victim%"
+      replace "%attacker%" in death message with "&k%attacker%"
+      send death message to all players in {worldB::*}
+  else:
+    if {worldA::*} contains attacker:
+      replace "%victim%" in death message with "&k%victim%"
+      send death message to all players in {worldA::*}
+    else:
+      send death messsage to all players in {worldB::*}
+      replace "%victim%" in death message with "&k%victim%"
+      replace "%attacker%" in death message with "&k%attacker%"
+      send death message to all players in {worldB::*}
+
+
+
+  
+on resurrect attempt:
+  if {halflifetimer::%player%} is true:
+    set {halflifetimer::%player%} to false
+  else:
+    remove 1 from {lives::%player%}
+    set {halflifetimer::%player%} to true
+    set {halfliferealtimer::%player%} to 1200
 
