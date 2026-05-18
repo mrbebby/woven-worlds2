@@ -212,3 +212,16 @@ on resurrect attempt:
     set {halflifetimer::%player%} to true
     set {halfliferealtimer::%player%} to 1200
 
+
+
+
+command /rollspirit {<integer>} {<integer>}:
+  if arg-1 is set:
+    if arg-2 is set:
+      set {_min} to arg-1
+      set {_max} to arg-2
+    else: 
+      send "Either both or neither" to player
+      stop
+  else:
+    
