@@ -216,12 +216,38 @@ on resurrect attempt:
 
 
 command /rollspirit {<integer>} {<integer>}:
-  if arg-1 is set:
-    if arg-2 is set:
-      set {_min} to arg-1
-      set {_max} to arg-2
-    else: 
-      send "Either both or neither" to player
-      stop
-  else:
-    
+  permission: op
+  trigger:
+    remove {spirits::*}
+    if arg-1 is set:
+      if arg-2 is set:
+        set {_min} to arg-1
+        set {_max} to arg-2
+        rollspirt({_min}, {_max})
+      else: 
+        send "Either both or neither" to player
+        stop
+    else:
+      rollspirit(4, 8)
+
+function rollspirit(mn: min, mx: max):
+  set {_num} to a random number in the range of {_mn} and {_mx}
+  loop all players:
+    add loop-player to {_allplayers::*}
+  loop {_num} times:
+    set {_spirittemp} to a random player from {_allplayers::*}
+    add {_spirittemp} to {spirits::*}
+    remove player from {_allplayers::*}
+  send "&cYou are the spirit, you must kill 1 player through non-pvp methods to cure, if you fail you will &4Final Die." to all players in {spirits::*}
+
+
+command /listspirits:
+  permission: op
+  trigger:
+    send "%{spririts::*}%"
+
+
+command /breakfree:
+  trigger:
+    remove player from {spririts::*}
+    broadcast "&cSpirit %player% has broken free."
